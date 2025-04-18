@@ -32,6 +32,25 @@ app.post('/api/balance', async (req, res) => {
     }
 });
 
+app.post('/api/transactions', async (req, res) => {
+    try {
+        const { address, blockLimit } = req.body;
+        
+        if (!address) {
+            return res.status(400).json({ error: 'Address is required' });
+        }
+        
+        if (!web3Service.isValidAddress(address)) {
+            return res.status(400).json({ error: 'Invalid Ethereum address' });
+        }
+        
+        const transactions = await web3Service.getTransactionHistory(address, blockLimit);
+        res.json({ address, transactions, count: transactions.length });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 async function startServer() {
     console.log('Connecting to Ethereum...');
     const connected = await web3Service.connect();

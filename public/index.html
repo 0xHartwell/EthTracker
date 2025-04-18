@@ -14,10 +14,17 @@
         <div class="input-section">
             <input type="text" id="addressInput" placeholder="Enter Ethereum address (0x...)">
             <button id="addBtn">Add Address</button>
+            <button id="historyBtn" style="display: none;">View Transactions</button>
         </div>
         
         <div id="addressList" class="address-list">
             <p>No addresses added yet.</p>
+        </div>
+        
+        <div id="transactionHistory" class="transaction-history" style="display: none;">
+            <h3>Transaction History</h3>
+            <div id="transactionList"></div>
+            <button id="closeHistory">Close</button>
         </div>
     </div>
     

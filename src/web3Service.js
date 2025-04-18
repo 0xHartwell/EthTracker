@@ -40,6 +40,44 @@ class Web3Service {
         }
     }
     
+    async getTransactionHistory(address, blockLimit = 1000) {
+        if (!this.isConnected) {
+            throw new Error('Web3 not connected');
+        }
+        
+        try {
+            const latestBlock = await this.web3.eth.getBlockNumber();
+            const fromBlock = Math.max(0, Number(latestBlock) - blockLimit);
+            
+            const transactions = [];
+            
+            for (let i = fromBlock; i <= latestBlock; i++) {
+                const block = await this.web3.eth.getBlock(i, true);
+                if (block && block.transactions) {
+                    for (const tx of block.transactions) {
+                        if (tx.from.toLowerCase() === address.toLowerCase() || 
+                            (tx.to && tx.to.toLowerCase() === address.toLowerCase())) {
+                            transactions.push({
+                                hash: tx.hash,
+                                blockNumber: tx.blockNumber,
+                                from: tx.from,
+                                to: tx.to,
+                                value: this.web3.utils.fromWei(tx.value, 'ether'),
+                                gasUsed: tx.gas,
+                                gasPrice: tx.gasPrice,
+                                timestamp: block.timestamp
+                            });
+                        }
+                    }
+                }
+            }
+            
+            return transactions.sort((a, b) => b.timestamp - a.timestamp);
+        } catch (error) {
+            throw new Error(`Failed to get transaction history: ${error.message}`);
+        }
+    }
+    
     isValidAddress(address) {
         return this.web3 && this.web3.utils.isAddress(address);
     }
