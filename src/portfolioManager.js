@@ -1,6 +1,23 @@
+const storage = require('./storage');
+
 class PortfolioManager {
     constructor() {
         this.portfolios = new Map();
+        this.loadFromStorage();
+    }
+    
+    loadFromStorage() {
+        const savedPortfolios = storage.load('portfolios');
+        if (savedPortfolios) {
+            savedPortfolios.forEach(portfolio => {
+                this.portfolios.set(portfolio.name, portfolio);
+            });
+        }
+    }
+    
+    saveToStorage() {
+        const portfolioArray = Array.from(this.portfolios.values());
+        return storage.save('portfolios', portfolioArray);
     }
     
     createPortfolio(name, addresses = []) {
@@ -16,6 +33,7 @@ class PortfolioManager {
         };
         
         this.portfolios.set(name, portfolio);
+        this.saveToStorage();
         return portfolio;
     }
     
@@ -35,6 +53,7 @@ class PortfolioManager {
         
         if (!portfolio.addresses.includes(address)) {
             portfolio.addresses.push(address);
+            this.saveToStorage();
         }
         
         return portfolio;
@@ -49,13 +68,18 @@ class PortfolioManager {
         const index = portfolio.addresses.indexOf(address);
         if (index > -1) {
             portfolio.addresses.splice(index, 1);
+            this.saveToStorage();
         }
         
         return portfolio;
     }
     
     deletePortfolio(name) {
-        return this.portfolios.delete(name);
+        const result = this.portfolios.delete(name);
+        if (result) {
+            this.saveToStorage();
+        }
+        return result;
     }
     
     updatePortfolioBalance(name, totalBalance) {
@@ -63,6 +87,7 @@ class PortfolioManager {
         if (portfolio) {
             portfolio.totalBalance = totalBalance;
             portfolio.lastUpdated = new Date();
+            this.saveToStorage();
         }
         return portfolio;
     }

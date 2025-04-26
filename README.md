@@ -1,11 +1,17 @@
 # EthTracker
 
-Simple Ethereum address tracking tool.
+Ethereum address and portfolio tracking tool.
 
-## TODO
-- [ ] Set up basic server
-- [ ] Add web3 connection
-- [ ] Create address tracking functionality
-- [ ] Build simple UI
+## Features
+- Track multiple Ethereum addresses
+- View transaction history
+- Portfolio management  
+- Real-time ETH price data
+- Balance tracking with USD values
 
-Work in progress...
+## Usage
+```bash
+npm start
+```
+
+Then open http://localhost:3000
