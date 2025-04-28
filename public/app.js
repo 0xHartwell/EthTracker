@@ -111,7 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     async function loadTransactionHistory() {
         if (!selectedAddress) return;
         
-        transactionList.innerHTML = '<p>Loading transactions...</p>';
+        transactionList.innerHTML = '<div class="loading">🔄 Scanning recent blocks for transactions... This may take a minute.</div>';
         transactionHistory.style.display = 'block';
         
         try {
@@ -122,6 +122,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 },
                 body: JSON.stringify({ address: selectedAddress, blockLimit: 500 }),
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
             
             const data = await response.json();
             

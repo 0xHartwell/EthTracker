@@ -40,22 +40,30 @@ class Web3Service {
         }
     }
     
-    async getTransactionHistory(address, blockLimit = 1000) {
+    async getTransactionHistory(address, blockLimit = 500) {
         if (!this.isConnected) {
             throw new Error('Web3 not connected');
         }
         
         try {
+            console.log(`Scanning ${blockLimit} blocks for transactions...`);
             const latestBlock = await this.web3.eth.getBlockNumber();
             const fromBlock = Math.max(0, Number(latestBlock) - blockLimit);
             
             const transactions = [];
+            let processedBlocks = 0;
             
             for (let i = fromBlock; i <= latestBlock; i++) {
                 const block = await this.web3.eth.getBlock(i, true);
+                processedBlocks++;
+                
+                if (processedBlocks % 100 === 0) {
+                    console.log(`Processed ${processedBlocks}/${blockLimit} blocks`);
+                }
+                
                 if (block && block.transactions) {
                     for (const tx of block.transactions) {
-                        if (tx.from.toLowerCase() === address.toLowerCase() || 
+                        if (tx.from && tx.from.toLowerCase() === address.toLowerCase() || 
                             (tx.to && tx.to.toLowerCase() === address.toLowerCase())) {
                             transactions.push({
                                 hash: tx.hash,
@@ -65,15 +73,22 @@ class Web3Service {
                                 value: this.web3.utils.fromWei(tx.value, 'ether'),
                                 gasUsed: tx.gas,
                                 gasPrice: tx.gasPrice,
-                                timestamp: block.timestamp
+                                timestamp: Number(block.timestamp)
                             });
                         }
                     }
                 }
+                
+                // Add small delay to prevent overwhelming the RPC
+                if (i % 50 === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
             }
             
+            console.log(`Found ${transactions.length} transactions`);
             return transactions.sort((a, b) => b.timestamp - a.timestamp);
         } catch (error) {
+            console.error('Transaction history error:', error);
             throw new Error(`Failed to get transaction history: ${error.message}`);
         }
     }
